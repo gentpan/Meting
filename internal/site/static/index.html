@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>api.pancdn.net · 音乐聚合 API</title>
+  <meta name="description" content="api.pancdn.net 提供网易云、QQ音乐、酷狗音乐的搜索、歌单、歌词、封面与播放地址解析接口。">
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --card: #141820;
+      --border: #252b38;
+      --text: #e8ecf4;
+      --muted: #8b93a7;
+      --accent: #3b82f6;
+      --accent2: #22c55e;
+      --code-bg: #0f131a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 0 20px 48px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    header {
+      padding: 48px 0 32px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+    h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+    .sub { color: var(--muted); margin-top: 8px; font-size: 15px; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .badge.ok { border-color: rgba(34,197,94,.35); color: var(--accent2); }
+    h2 {
+      font-size: 18px;
+      margin: 32px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 { font-size: 15px; margin: 20px 0 8px; color: #c5cad6; }
+    p, li { color: #b8bfce; font-size: 14px; }
+    ul { padding-left: 20px; margin: 8px 0; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 12px 0;
+    }
+    .endpoint {
+      display: grid;
+      gap: 6px;
+      margin: 10px 0;
+      padding: 12px 14px;
+      background: var(--code-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .method {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: rgba(59,130,246,.15);
+      color: var(--accent);
+      margin-right: 8px;
+    }
+    code, pre {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      color: #d1d9e6;
+      margin: 10px 0;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 12px 0;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--muted); font-weight: 600; }
+    td code { color: #93c5fd; }
+    footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 12px; }
+    @media (max-width: 600px) {
+      h1 { font-size: 22px; }
+      pre { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>api.pancdn.net</h1>
+      <p class="sub">多平台音乐聚合 API · 搜索 / 歌单 / 歌词 / 封面 / 播放地址</p>
+      <div class="badge-row">
+        <span class="badge ok">支持 CORS 跨域</span>
+        <span class="badge">网易云 netease</span>
+        <span class="badge">QQ音乐 tencent</span>
+        <span class="badge">酷狗 kugou</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>快速开始</h2>
+      <p>所有接口基础路径为 <code>https://api.pancdn.net/api/v1</code>，返回 JSON（歌词文本接口除外）。前端可直接 <code>fetch</code> 调用，无需后端中转。</p>
+      <div class="card">
+        <strong>健康检查</strong>
+        <pre>GET https://api.pancdn.net/healthz</pre>
+        <strong>查看可用平台</strong>
+        <pre>GET https://api.pancdn.net/api/v1/providers</pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>路径规则</h2>
+      <pre>/api/v1/{provider}/{resource}/...</pre>
+      <table>
+        <thead>
+          <tr><th>provider</th><th>平台</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>netease</code></td><td>网易云音乐</td></tr>
+          <tr><td><code>tencent</code></td><td>QQ 音乐</td></tr>
+          <tr><td><code>kugou</code></td><td>酷狗音乐</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>常用接口</h2>
+
+      <h3>搜索歌曲</h3>
+      <div class="endpoint">
+        <div><span class="method">GET</span><code>/api/v1/{provider}/search?q=关键词&amp;page=1&amp;limit=30</code></div>
+      </div>
+      <p>参数 <code>q</code> 或 <code>keyword</code> 均可。返回 <code>items</code> / <code>songs</code> 列表。</p>
+      <pre>https://api.pancdn.net/api/v1/netease/search?q=晴天&amp;page=1&amp;limit=10</pre>
+
+      <h3>单曲详情</h3>
+      <div class="endpoint">
+        <div><span class="method">GET</span><code>/api/v1/{provider}/songs/{id}</code></div>
+      </div>
+      <pre>https://api.pancdn.net/api/v1/netease/songs/210049</pre>
+
+      <h3>播放地址（推荐）</h3>
+      <div class="endpoint">
+        <div><span class="method">GET</span><code>/api/v1/{provider}/songs/{id}/stream?redirect=false&amp;quality=lossless</code></div>
+      </div>
+      <p>加 <code>redirect=false</code> 返回 JSON，含官方 CDN 直链 <code>url</code>，浏览器可直连播放/下载。</p>
+      <p>音质 <code>quality</code> 可选：<code>standard</code> · <code>exhigh</code> · <code>lossless</code> · <code>hires</code> 等。</p>
+      <pre>https://api.pancdn.net/api/v1/netease/songs/210049/stream?redirect=false&amp;quality=exhigh</pre>
+
+      <h3>歌词</h3>
+      <div class="endpoint">
+        <div><span class="method">GET</span><code>/api/v1/{provider}/songs/{id}/lyric</code></div>
+        <div><span class="method">GET</span><code>/api/v1/{provider}/songs/{id}/lyric?format=json</code></div>
+      </div>
+      <p>默认返回 LRC 文本；<code>format=json</code> 返回结构化歌词。</p>
+
+      <h3>封面</h3>
+      <div class="endpoint">
+        <div><span class="method">GET</span><code>/api/v1/{provider}/songs/{id}/cover?size=600</code></div>
+      </div>
+      <p>默认 302 跳转图片地址；加 <code>redirect=false</code> 返回 <code>{"url":"..."}</code>。</p>
+
+      <h3>歌单</h3>
+      <div class="endpoint">
+        <div><span class="method">GET</span><code>/api/v1/{provider}/playlists/{id}</code></div>
+      </div>
+      <p>返回歌单名、封面、歌曲列表。网易云示例：</p>
+      <pre>https://api.pancdn.net/api/v1/netease/playlists/2859214503</pre>
+
+      <h3>专辑 / 歌手</h3>
+      <div class="endpoint">
+        <div><span class="method">GET</span><code>/api/v1/{provider}/albums/{id}</code></div>
+        <div><span class="method">GET</span><code>/api/v1/{provider}/artists/{id}?limit=50</code></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>站点如何引用</h2>
+
+      <h3>JavaScript（浏览器 / 前端项目）</h3>
+      <pre>const API = 'https://api.pancdn.net';
+
+// 搜索
+const res = await fetch(`${API}/api/v1/netease/search?q=周杰伦&limit=10`);
+const data = await res.json();
+console.log(data.items);
+
+// 获取播放直链
+const stream = await fetch(
+  `${API}/api/v1/netease/songs/210049/stream?redirect=false&quality=exhigh`
+).then(r => r.json());
+
+// 用返回的 url 播放（直连平台 CDN）
+const audio = new Audio(stream.url);
+audio.play();
+
+// 歌词（LRC 文本）
+const lrc = await fetch(`${API}/api/v1/netease/songs/210049/lyric`).then(r => r.text());
+
+// 封面（可直接作 img src，或 redirect=false 取 url）
+const cover = `${API}/api/v1/netease/songs/210049/cover?size=600`;</pre>
+
+      <h3>curl</h3>
+      <pre>curl "https://api.pancdn.net/api/v1/tencent/search?q=稻香&limit=5"
+curl "https://api.pancdn.net/api/v1/kugou/songs/{hash}/stream?redirect=false"</pre>
+
+      <h3>接入示例项目</h3>
+      <p>开源前端 <a href="https://music.bi" target="_blank" rel="noopener">music.bi</a> 已接入本 API，环境变量：</p>
+      <pre>VITE_API_BASE=https://api.pancdn.net</pre>
+    </section>
+
+    <section>
+      <h2>响应字段说明</h2>
+      <p>歌曲对象常见字段：</p>
+      <table>
+        <thead>
+          <tr><th>字段</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>平台歌曲 ID（酷狗为 hash）</td></tr>
+          <tr><td><code>name</code></td><td>歌名</td></tr>
+          <tr><td><code>artist</code> / <code>artists</code></td><td>歌手</td></tr>
+          <tr><td><code>album</code></td><td>专辑名</td></tr>
+          <tr><td><code>url</code></td><td>本 API 的 stream 地址（item 内）</td></tr>
+          <tr><td><code>cover</code> / <code>lyric</code></td><td>封面、歌词 API 地址（item 内）</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px">播放接口 JSON 示例：<code>{"url":"...","format":"mp3","br":320,"size":...,"quality":"exhigh"}</code></p>
+    </section>
+
+    <section>
+      <h2>说明</h2>
+      <ul>
+        <li>接口支持 <strong>CORS</strong>，网页前端可直接请求。</li>
+        <li>音频文件从各平台官方 CDN <strong>直连</strong>，不经本 API 中转流量。</li>
+        <li>部分 VIP 高品质音源依赖服务端 Cookie 配置，不可用时会返回错误。</li>
+        <li>请合理控制请求频率，勿用于大规模爬取。</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>Meting.io 兼容 API · 服务域名 <strong>api.pancdn.net</strong></p>
+      <div class="links">
+        <a href="/healthz">/healthz</a>
+        <a href="/api/v1/providers">/api/v1/providers</a>
+        <a href="https://music.bi" target="_blank" rel="noopener">music.bi 演示站</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

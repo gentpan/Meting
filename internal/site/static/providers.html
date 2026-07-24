@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meting.io | 平台中心</title>
+  <meta name="description" content="查看 Meting.io 当前平台状态、运行时环境变量和在线探测面板。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/app.css?v=20260412r2">
+</head>
+<body>
+  <div class="page-shell">
+    <nav class="site-nav">
+      <a class="brand" href="/">Meting.io</a>
+      <div class="nav-links">
+        <a href="/">首页</a>
+        <a href="#provider-matrix">平台矩阵</a>
+        <a href="#probe">在线探测</a>
+        <a class="nav-cta" href="/api/v1/providers">接口状态</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero hero-subpage">
+        <div class="hero-copy">
+          <p class="eyebrow">平台中心</p>
+          <h1>把平台状态、运行变量和探测流程集中放在一个地方。</h1>
+          <p class="hero-text">
+            这一页集中展示平台状态、环境变量模板和在线探测。
+            哪些平台匿名可用，哪些平台必须携带额外凭证，都在这里直接公开。
+          </p>
+          <div class="hero-actions">
+            <a class="button-primary" href="#provider-matrix">查看矩阵</a>
+            <a class="button-secondary" href="#probe">开始探测</a>
+          </div>
+        </div>
+        <aside class="hero-panel">
+          <div class="panel-top">
+            <span>运行说明</span>
+            <strong data-origin-label>自动识别</strong>
+          </div>
+          <div class="stack-list">
+            <div class="stack-item"><span>基础地址</span><code>PUBLIC_BASE_URL=https://api.pancdn.net</code></div>
+            <div class="stack-item"><span>酷狗 Cookie</span><code>建议提供，用于提升直链成功率</code></div>
+            <div class="stack-item"><span>酷我令牌</span><code>多数接口必需，需来自真实浏览器</code></div>
+            <div class="stack-item"><span>QQ 搜索</span><code>优先走签名桌面搜索，再自动回退</code></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="section" id="provider-matrix">
+        <div class="section-heading">
+          <p class="eyebrow">平台矩阵</p>
+          <h2>当前平台矩阵</h2>
+        </div>
+        <div class="provider-grid" id="provider-center-list">
+          <article class="provider-card">
+            <p class="card-label">加载中</p>
+            <h3>正在读取平台信息...</h3>
+            <p>正在读取当前平台说明。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <p class="eyebrow">运行变量</p>
+          <h2>运行时变量模板</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <p class="card-label">基础地址</p>
+            <h3>PUBLIC_BASE_URL</h3>
+            <pre class="code-card"><code>PUBLIC_BASE_URL=https://api.pancdn.net</code></pre>
+          </article>
+          <article class="feature-card">
+            <p class="card-label">酷狗</p>
+            <h3>KUGOU_COOKIE</h3>
+            <pre class="code-card"><code>KUGOU_COOKIE=kg_mid=...; dfid=...; mid=...</code></pre>
+          </article>
+          <article class="feature-card">
+            <p class="card-label">可选项</p>
+            <h3>NETEASE_COOKIE / TENCENT_COOKIE</h3>
+            <pre class="code-card"><code>NETEASE_COOKIE=...
+TENCENT_COOKIE=...</code></pre>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="probe">
+        <div class="section-heading">
+          <p class="eyebrow">在线探测</p>
+          <h2>在线探测</h2>
+        </div>
+        <div class="explorer-shell">
+          <form class="explorer-form" id="provider-probe-form">
+            <label>
+              <span>平台</span>
+              <select name="provider">
+                <option value="netease">网易云音乐</option>
+                <option value="tencent">QQ 音乐</option>
+                <option value="kugou">酷狗音乐</option>
+              </select>
+            </label>
+            <label>
+              <span>操作</span>
+              <select name="resource">
+                <option value="search">搜索</option>
+                <option value="song">歌曲</option>
+                <option value="playlist">歌单</option>
+                <option value="stream">直链</option>
+              </select>
+            </label>
+            <label>
+              <span id="probe-subject-label">关键词</span>
+              <input name="value" value="周杰伦" autocomplete="off">
+            </label>
+            <label>
+              <span id="probe-extra-label">数量</span>
+              <input name="extra" value="5" autocomplete="off">
+            </label>
+            <button type="submit">开始探测</button>
+          </form>
+          <div class="result-panel">
+            <div class="result-meta">
+              <span>探测地址</span>
+              <strong id="probe-url">-</strong>
+            </div>
+            <pre id="probe-output">等待探测...</pre>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/assets/providers.js?v=20260412r2"></script>
+</body>
+</html>

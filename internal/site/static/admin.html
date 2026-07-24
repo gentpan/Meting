@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meting.io · 账号后台</title>
+<style>
+  :root { --bg:#0f1115; --card:#191c23; --line:#272b34; --fg:#e7e9ee; --mut:#9aa1ad;
+          --grn:#34c759; --red:#ff5a5f; --gry:#7a818d; --acc:#4c8dff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+         font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif; }
+  header { padding:20px 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:12px; }
+  header h1 { font-size:18px; margin:0; font-weight:600; }
+  header .sub { color:var(--mut); font-size:13px; }
+  main { max-width:920px; margin:0 auto; padding:24px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:20px; }
+  .card h2 { font-size:15px; margin:0 0 14px; font-weight:600; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  input[type=text],input[type=password],textarea {
+     background:#11141a; border:1px solid var(--line); color:var(--fg); border-radius:8px; padding:9px 11px; font-size:13px; width:100%; }
+  textarea { min-height:64px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+  button { background:var(--acc); color:#fff; border:0; border-radius:8px; padding:9px 14px; font-size:13px; cursor:pointer; font-weight:500; }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--fg); }
+  button.danger { background:transparent; border:1px solid #5a2b2d; color:var(--red); }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:11px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th { color:var(--mut); font-weight:500; font-size:12px; }
+  .badge { display:inline-block; padding:2px 9px; border-radius:20px; font-size:12px; font-weight:600; }
+  .b-alive { background:rgba(52,199,89,.15); color:var(--grn); }
+  .b-invalid { background:rgba(255,90,95,.15); color:var(--red); }
+  .b-unknown { background:rgba(122,129,141,.15); color:var(--gry); }
+  .src-btns button { margin:0 8px 8px 0; }
+  .muted { color:var(--mut); font-size:12px; }
+  .acts button { padding:6px 10px; font-size:12px; margin-left:6px; }
+  .hide { display:none !important; }
+  /* modal */
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:50; }
+  .modal { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:26px; width:320px; text-align:center; }
+  .modal h3 { margin:0 0 16px; font-size:16px; }
+  #qrbox { width:220px; height:220px; margin:0 auto 14px; background:#fff; border-radius:10px; padding:10px; display:flex; align-items:center; justify-content:center; }
+  #qrbox img { width:100%; height:100%; object-fit:contain; }
+  #qrstatus { min-height:20px; margin-bottom:14px; }
+  .err { color:var(--red); font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Meting.io · 账号后台</h1>
+  <span class="sub">扫码登录 · 凭证管理 · 有效期检测</span>
+</header>
+<main>
+  <div class="card" id="loginCard">
+    <h2>运营 Token</h2>
+    <div class="row">
+      <div style="flex:1; min-width:240px;"><input type="password" id="tokenInput" placeholder="mt_… 运营专用 token"></div>
+      <button id="saveToken">保存并加载</button>
+    </div>
+    <p class="muted" id="loginHint">该 token 即 MUSICBI_TOKEN(免限额的运营 token),仅本地浏览器保存。</p>
+  </div>
+
+  <div class="card hide" id="credCard">
+    <h2>账号状态</h2>
+    <table>
+      <thead><tr><th>平台</th><th>状态</th><th>说明 / VIP</th><th>最后检测</th><th>更新时间</th><th></th></tr></thead>
+      <tbody id="credBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card hide" id="scanCard">
+    <h2>扫码登录 / 添加账号</h2>
+    <div class="src-btns" id="srcBtns"></div>
+    <p class="muted">点击平台后用对应 App 扫码;成功后凭证会自动入库并立即检测有效性。</p>
+  </div>
+
+  <div class="card hide" id="manualCard">
+    <h2>手动粘贴 Cookie</h2>
+    <div class="row" style="margin-bottom:10px;">
+      <select id="manualProvider" style="background:#11141a;border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px;">
+        <option value="netease">网易云音乐</option>
+        <option value="tencent">QQ音乐</option>
+        <option value="kugou">酷狗音乐</option>
+      </select>
+    </div>
+    <textarea id="manualCookie" placeholder="粘贴 Cookie 字符串(k=v; k=v),或浏览器插件导出的 Cookie JSON —— 两种都行,会自动整理"></textarea>
+    <div class="row" style="margin-top:10px;"><button id="manualSave">保存 Cookie</button></div>
+  </div>
+</main>
+
+<div class="overlay hide" id="overlay">
+  <div class="modal">
+    <h3 id="qrtitle">扫码登录</h3>
+    <div id="qrbox"></div>
+    <div id="qrstatus" class="muted">正在生成二维码…</div>
+    <button class="ghost" id="qrclose">关闭</button>
+  </div>
+</div>
+
+<script src="/assets/qrcode.min.js"></script>
+<script>
+const API = '/api/v1/admin';
+let TOKEN = localStorage.getItem('mt_admin_token') || '';
+const $ = s => document.querySelector(s);
+const PROV_NAME = { netease:'网易云音乐', tencent:'QQ音乐', kugou:'酷狗音乐' };
+
+function authHeaders(extra){ return Object.assign({'Authorization':'Bearer '+TOKEN}, extra||{}); }
+async function api(path, opts){
+  opts = opts || {}; opts.headers = authHeaders(opts.headers);
+  const r = await fetch(API+path, opts);
+  return r;
+}
+function fmtTime(sec){ if(!sec) return '—'; const d=new Date(sec*1000); return d.toLocaleString('zh-CN',{hour12:false}); }
+function badge(status){
+  const cls = status==='alive'?'b-alive':status==='invalid'?'b-invalid':'b-unknown';
+  const txt = status==='alive'?'有效':status==='invalid'?'失效':'未知';
+  return `<span class="badge ${cls}">${txt}</span>`;
+}
+
+async function loadCredentials(){
+  const r = await api('/credentials');
+  if(r.status===403){ $('#loginHint').innerHTML='<span class="err">token 无效或非运营 token。</span>'; return false; }
+  if(!r.ok){ $('#loginHint').innerHTML='<span class="err">加载失败 ('+r.status+')</span>'; return false; }
+  const data = await r.json();
+  $('#loginCard').classList.add('hide');
+  ['credCard','scanCard','manualCard'].forEach(id=>$('#'+id).classList.remove('hide'));
+
+  const body = $('#credBody'); body.innerHTML='';
+  (data.credentials||[]).forEach(c=>{
+    const tr=document.createElement('tr');
+    const detail = c.has_cookie ? (c.detail||'—') : '<span class="muted">未配置</span>';
+    const vip = c.vip_expiry ? ' · 到期 '+c.vip_expiry : '';
+    tr.innerHTML = `<td>${PROV_NAME[c.provider]||c.provider}</td>
+      <td>${badge(c.status)}</td>
+      <td>${detail}${vip}</td>
+      <td class="muted">${fmtTime(c.checked_at)}</td>
+      <td class="muted">${fmtTime(c.updated_at)}</td>
+      <td class="acts" style="text-align:right; white-space:nowrap;">
+        <button class="ghost" data-check="${c.provider}" ${c.has_cookie?'':'disabled'}>重新检测</button>
+        <button class="danger" data-del="${c.provider}" ${c.has_cookie?'':'disabled'}>删除</button>
+      </td>`;
+    body.appendChild(tr);
+  });
+
+  const sb = $('#srcBtns'); sb.innerHTML='';
+  (data.sources||[]).forEach(s=>{
+    const b=document.createElement('button'); b.textContent=s.display_name;
+    b.onclick=()=>openQR(s.source, s.display_name); sb.appendChild(b);
+  });
+  return true;
+}
+
+// ----- event delegation for table actions -----
+document.addEventListener('click', async e=>{
+  const chk = e.target.getAttribute && e.target.getAttribute('data-check');
+  const del = e.target.getAttribute && e.target.getAttribute('data-del');
+  if(chk){ e.target.disabled=true; e.target.textContent='检测中…';
+    await api('/check/'+chk, {method:'POST'}); await loadCredentials(); }
+  if(del){ if(!confirm('确认删除 '+(PROV_NAME[del]||del)+' 的凭证?')) return;
+    await api('/credentials/'+del, {method:'DELETE'}); await loadCredentials(); }
+});
+
+$('#saveToken').onclick = async ()=>{
+  TOKEN = $('#tokenInput').value.trim();
+  localStorage.setItem('mt_admin_token', TOKEN);
+  await loadCredentials();
+};
+$('#manualSave').onclick = async ()=>{
+  const provider = $('#manualProvider').value;
+  const cookie = $('#manualCookie').value.trim();
+  if(!cookie){ alert('请粘贴 Cookie'); return; }
+  const r = await api('/credentials/'+provider, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({cookie})});
+  if(r.ok){ $('#manualCookie').value=''; await loadCredentials(); } else { alert('保存失败 ('+r.status+')'); }
+};
+
+// ----- QR scan flow -----
+let pollTimer=null, pollStop=false;
+function closeQR(){ pollStop=true; if(pollTimer) clearTimeout(pollTimer); $('#overlay').classList.add('hide'); $('#qrbox').innerHTML=''; }
+$('#qrclose').onclick = closeQR;
+
+async function openQR(source, name){
+  pollStop=false;
+  $('#qrtitle').textContent = name;
+  $('#qrbox').innerHTML=''; $('#qrstatus').textContent='正在生成二维码…'; $('#qrstatus').className='muted';
+  $('#overlay').classList.remove('hide');
+  const r = await api('/qr/'+source, {method:'POST'});
+  if(!r.ok){ $('#qrstatus').innerHTML='<span class="err">创建二维码失败 ('+r.status+')</span>'; return; }
+  const s = await r.json();
+  renderQR(s);
+  $('#qrstatus').textContent='请使用 App 扫码…';
+  poll(source, s.key, s.expires_at);
+}
+
+function renderQR(s){
+  const box=$('#qrbox'); box.innerHTML='';
+  if(s.image_url){ const img=document.createElement('img'); img.src=s.image_url; box.appendChild(img); return; }
+  const content = s.url || s.key;
+  // qrcodejs renders into the element
+  new QRCode(box, { text: content, width:200, height:200, correctLevel: QRCode.CorrectLevel.M });
+}
+
+function poll(source, key, expiresAt){
+  if(pollStop) return;
+  if(expiresAt && Date.now()/1000 > expiresAt){ $('#qrstatus').innerHTML='<span class="err">二维码已过期,请重试</span>'; return; }
+  pollTimer = setTimeout(async ()=>{
+    if(pollStop) return;
+    let r;
+    try { r = await api('/qr/'+source+'?key='+encodeURIComponent(key)); } catch(e){ poll(source,key,expiresAt); return; }
+    if(!r.ok){ poll(source,key,expiresAt); return; }
+    const d = await r.json();
+    const st = d.status;
+    if(st==='success'){
+      $('#qrstatus').innerHTML='<span style="color:var(--grn)">登录成功,已入库</span>';
+      await loadCredentials();
+      setTimeout(closeQR, 900);
+    } else if(st==='expired' || st==='failed'){
+      $('#qrstatus').innerHTML='<span class="err">'+(st==='expired'?'二维码已过期':'登录失败')+(d.message?(' · '+d.message):'')+'</span>';
+    } else {
+      $('#qrstatus').textContent = st==='scanned' ? '已扫码,请在 App 上确认…' : '等待扫码…';
+      poll(source, key, expiresAt);
+    }
+  }, 2000);
+}
+
+// boot
+if(TOKEN){ $('#tokenInput').value=TOKEN; loadCredentials(); }
+</script>
+</body>
+</html>
